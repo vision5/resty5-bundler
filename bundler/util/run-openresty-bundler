@@ -1,0 +1,12 @@
+#! /bin/bash
+
+cd $(dirname "$(test -L "$0" && readlink -f "$0" || echo "$0")")
+cd ../..
+
+# Move to OpenResty dir
+OPENRESTY="$(pwd)/build/openresty"
+[ ! -d $OPENRESTY ] && "[Error] OpenResty dir does not exist: $OPENRESTY" && exit 1
+cd $OPENRESTY || exit 1
+
+# Run the OpenResty bundler
+make || exit 1

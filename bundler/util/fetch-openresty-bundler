@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+cd $(dirname "$(test -L "$0" && readlink -f "$0" || echo "$0")")
+cd ../..
+
+# Move to build dir
+mkdir -p build || exit 1
+cd build || exit 1
+
+# Clone openresty
+rm -fr openresty || exit 1
+git clone https://github.com/openresty/openresty.git

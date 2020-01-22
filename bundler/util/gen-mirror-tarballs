@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+
+## NOTE: Use -t after version for testing
+
+cd $(dirname "$(test -L "$0" && readlink -f "$0" || echo "$0")")
+
+NAME=mirror-tarballs
+. gen/header
+. "$C_LIBS_SOURCES"
+
+# Settings
+
+SECTION_SUFFIX=sh
+SECTIONS='
+    c_libs
+    lua_resty_libs
+'
+
+# Functions
+
+gen_section_c_libs() {
+    
+    out="$(section_file c_libs)"
+    config="$C_LIBS_CONFIG"
+    template="$C_LIBS_TEMPLATE"
+    
+    echo -n > "$out"
+        
+    while read -r line || [[ -n "$line" ]]; do
+        
+        COMPRESS=
+        
+        # Remove comments
+        line=${line%#*}
+
+        # Get module, user, repo
+        LIB=$(echo "$line" | awk '{print $1;}')
+        [[ "$LIB" = '' ]] && continue
+
+        # Get version
+        VER=$(echo "$line" | awk '{print $2;}')
+        [[ "$VER" = '' ]] && "[ERROR] No version definied for lib $LIB" && exit 1
+
+        # Get src url 2> /dev/null || PFX="$TAG"
+        eval ${LIB}_src_url 2> /dev/null
+        [[ $? != 0 ]] && echo "[ERROR] No src URL function defined for lib $LIB" && exit 1
+        
+        # Get file compression
+        COMPRESS=${COMPRESS:-${SRC_URL##*.}}
+        if [[ "$COMPRESS" = 'gz' ]]; then
+            DECOMPRESS=z
+        elif [[ "$COMPRESS" = 'bz2' ]]; then
+            DECOMPRESS=j
+        else
+            echo "[ERROR] Don't know compression $COMPRESS" && exit 1
+        fi
+            
+        # Get src/dest dir
+        eval ${LIB}_src_dir 2> /dev/null || SRC_DIR="$LIB-$VER"
+        DEST_DIR="$LIB-$VER"
+
+        # Get src/dest file
+        eval ${LIB}_src_file 2> /dev/null || SRC_FILE="$LIB-$VER.tar.$COMPRESS"
+        DEST_FILE="$LIB-$VER.tar.$COMPRESS"
+
+        # Get mvdir comment
+        if [[ $SRC_DIR = $DEST_DIR ]]; then
+            MVDIR_COMMENT='#'
+        else
+            MVDIR_COMMENT=
+        fi
+
+        cat "$template" | sed \
+            -e "s|%SRC_URL%|$SRC_URL|g" \
+            -e "s|%SRC_DIR%|$SRC_DIR|g" \
+            -e "s|%SRC_FILE%|$SRC_FILE|g" \
+            -e "s|%DEST_DIR%|$DEST_DIR|g" \
+            -e "s|%DEST_FILE%|$DEST_FILE|g" \
+            -e "s|%DECOMPRESS%|$DECOMPRESS|g" \
+            -e "s|%MVDIR_COMMENT%|$MVDIR_COMMENT|g" \
+            >> "$out"
+
+    done < "$config"
+}
+
+gen_section_lua_resty_libs() {
+    
+    out="$(section_file lua_resty_libs)"
+    config="$LUA_RESTY_LIBS_CONFIG"
+    template="$LUA_RESTY_LIBS_TEMPLATE"
+    makefile="$LUA_RESTY_LIBS_MAKEFILE"
+    
+    echo -n > "$out"
+
+    while read -r line || [[ -n "$line" ]]; do
+        
+        # Remove comments
+        line=${line%#*}
+
+        # Get module, user, repo
+        URI=$(echo "$line" | awk '{print $1;}')
+        USER=${URI%/*}
+        REPO=${URI##*/}
+
+        echo -n "Getting version for $REPO ... "
+
+        # Get version
+        VER=$(echo "$line" | awk '{print $2;}')
+        VER_PREFIX=
+        
+        if [[ "$VER" = '' ]]; then
+            
+            # Get the latest VERsion from GitHub
+            TAG=$(curl -I https://github.com/$URI/releases/latest 2> /dev/null | grep Location | sed -rn 's@^Location:.*/tag/([a-zA-Z0-9_-.]*).*$@\1@p')
+            
+            if [[ $TAG = '' ]]; then
+                VER=master
+                TAG=master
+            elif [[ ${TAG:0:1} = 'v' ]]; then
+                VER=${TAG:1}
+                VER_PREFIX='v'
+            else
+                VER=$TAG
+            fi
+        fi
+        
+        echo $VER
+
+        cat "$template" | sed \
+            -e "s|%USER%|$USER|g" \
+            -e "s|%REPO%|$REPO|g" \
+            -e "s|%VER_PREFIX%|$VER_PREFIX|g" \
+            -e "s|%VER%|$VER|g" \
+            -e "s|%MAKEFILE%|$makefile|g" \
+            >> "$out"
+
+    done < "$config"
+}
+
+gen_sections() {
+    gen_section_c_libs
+    gen_section_lua_resty_libs
+}
+
+cd "$UTIL"
+. gen/footer

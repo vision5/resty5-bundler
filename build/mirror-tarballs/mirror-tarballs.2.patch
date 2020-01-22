@@ -1,0 +1,29 @@
+--- mirror-tarballs.1	2020-01-17 11:08:37.665424883 +0000
++++ mirror-tarballs.2	2020-01-20 06:22:41.961551667 +0000
+@@ -876,8 +876,11 @@
+ 
+ #################################
+ 
++<LUA_RESTY_LIBS>
++<C_LIBS>
++
+ rm *.tar.gz
+-rm *.tar.bz2
++rm *.tar.bz2 &> /dev/null
+ 
+ cd ..
+ cp $root/util/configure ./ || exit 1
+@@ -956,11 +959,11 @@
+ find bundle -name '*.rockspec' -delete
+ find bundle -name '*.spec' -delete
+ find bundle -name '*.json' -delete
+-find bundle -name '*.pm' -delete
++#find bundle -name '*.pm' -delete
+ find bundle -name '*.stp' -delete
+ find bundle -type d -name 't' -exec rm -r {} +
+ find bundle -type d -name 'web' -exec rm -r {} + # opm web/ dir
+-find bundle -type d -name 'util' -exec rm -r {} +
++#find bundle -type d -name 'util' -exec rm -r {} +
+ 
+ cd $root || exit 1
+ 

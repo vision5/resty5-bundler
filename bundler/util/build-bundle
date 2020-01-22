@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+cd $(dirname "$(test -L "$0" && readlink -f "$0" || echo "$0")")
+UTIL=$(pwd)
+
+test $# -lt 1 && echo "Usage : $0 [version]" && exit 1
+VERSION=$1
+
+VALID_VERSIONS='
+    beefy
+    slimline
+'
+
+# Check version is valid
+ok=0
+for v in $VALID_VERSIONS; do
+    if [ $VERSION = $v ]; then
+        ok=1
+        break
+    fi
+done
+[[ $ok = 0 ]] && echo "Resty5 version not valid: $v" >&2 && exit 1
+
+# Clean build dir
+./clean-build-dir || exit 1
+
+# Fetch openresty
+echo "Fetching OpenResty bundler ..."
+./fetch-openresty-bundler || exit 1
+
+# Geneate openresty patches
+echo "Generating OpenResty bundler patches ..."
+./gen-configure $VERSION || exit 1
+./gen-mirror-tarballs $VERSION || exit 1
+
+# Patch the openresty bundler
+echo "Patching OpenResty bundler ..."
+./patch-openresty-bundler || exit 1
+
+# Make patched openresty bundler
+echo "Running OpenResty bundler ..."
+./run-openresty-bundler || exit 1
+
+# Patch OpenResty package
+echo "Patching OpenResty package ..."
+./patch-openresty-package $VERSION || exit 1
+
+# Move the new bundle
+echo "Moving final package ..."
+./move-package $VERSION || exit 1

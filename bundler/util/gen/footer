@@ -1,0 +1,12 @@
+#! /bin/bash
+
+if [[ "$TEST" = -t ]]; then
+    gen_all
+    ret=$?
+    [ $ret = 0 ] && gen_test
+else
+    gen_all
+    ret=$?
+fi
+
+exit $ret

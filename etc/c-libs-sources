@@ -1,0 +1,165 @@
+#! /bin/bash
+
+bzip2_src_url() {
+    SRC_URL="https://sourceforge.net/projects/bzip2/files/bzip2-$VER.tar.gz/download"
+    COMPRESS=gz
+    # http://www.bzip.org/downloads.html$VER
+}
+
+expat_src_url() {
+    SRC_URL="https://github.com/libexpat/libexpat/releases/download/R_${VER//./_}/expat-$VER.tar.bz2"
+    # https://github.com/libexpat/libexpat/releases
+}
+
+fontconfig_src_url() {
+    SRC_URL="https://www.freedesktop.org/software/fontconfig/release/fontconfig-$VER.tar.gz"
+    # https://www.freedesktop.org/software/fontconfig/release/
+}
+
+freetype_src_url() {
+    SRC_URL="https://download.savannah.gnu.org/releases/freetype/freetype-$VER.tar.gz"
+    # https://download.savannah.gnu.org/releases/freetype/
+}
+
+gd_src_url() {
+    SRC_URL="https://github.com/libgd/libgd/releases/download/gd-$VER/libgd-$VER.tar.gz"
+    # https://github.com/libgd/libgd/releases
+}
+
+gdal_src_url() {
+    SRC_URL="https://github.com/OSGeo/gdal/archive/v$VER.tar.gz"
+    # https://github.com/OSGeo/gdal/releases
+}
+
+gif_src_url() {
+    SRC_URL="https://sourceforge.net/projects/giflib/files/giflib-$VER.tar.bz2/download"
+    COMPRESS=bz2
+    # https://sourceforge.net/projects/giflib/files/?source=navbar
+}
+
+glib_src_url() {
+    SRC_URL="https://github.com/GNOME/glib/archive/$VER.tar.gz"
+    # https://github.com/GNOME/glib/releases
+}
+
+harfbuzz_src_url() {
+    SRC_URL="https://www.freedesktop.org/software/harfbuzz/release/harfbuzz-$VER.tar.bz2"
+    # https://www.freedesktop.org/software/harfbuzz/release/
+}
+
+iconv_src_url() {
+    SRC_URL="https://ftp.gnu.org/pub/gnu/libiconv/libiconv-$VER.tar.gz"
+    # https://ftp.gnu.org/pub/gnu/libiconv/
+}
+
+imagemagick_src_url() {
+    SRC_URL="https://www.imagemagick.org/download/ImageMagick-$VER.tar.gz"
+    # https://www.imagemagick.org/download/
+}
+
+imagequant_src_url() {
+    SRC_URL="https://github.com/ImageOptim/libimagequant/archive/$VER.tar.gz"
+    # https://github.com/ImageOptim/libimagequant/releases
+}
+
+jpeg_src_url() {
+    SRC_URL="http://www.ijg.org/files/jpegsrc.v$VER.tar.gz"
+    # http://www.ijg.org/files/
+}
+
+lzma_src_url() {
+    SRC_URL="https://tukaani.org/lzma/lzma-$VER.tar.bz2"
+    # https://tukaani.org/lzma/
+}
+
+openssl_src_url() {
+    SRC_URL="https://www.openssl.org/source/openssl-$VER.tar.gz"
+    # https://www.openssl.org/source/
+}
+
+pcre_src_url() {
+    SRC_URL="https://ftp.pcre.org/pub/pcre/pcre-$VER.tar.gz"
+    # https://ftp.pcre.org/pub/pcre/
+}
+
+png_src_url() {
+    SRC_URL="https://download.sourceforge.net/libpng/libpng-$VER.tar.gz"
+    # http://www.libpng.org/pub/png/libpng.html
+}
+
+sdl_src_url() {
+    SRC_URL="https://www.libsdl.org/release/SDL2-$VER.tar.gz"
+    # https://www.libsdl.org/download-2.0.php
+}
+
+tiff_src_url() {
+    SRC_URL="ftp://download.osgeo.org/libtiff/tiff-$VER.tar.gz"
+    # http://www.simplesystems.org/libtiff/  OR  ftp://download.osgeo.org/libtiff
+}
+
+uuid_src_url() {
+    SRC_URL="https://sourceforge.net/projects/libuuid/files/libuuid-$VER.tar.gz/download"
+    COMPRESS=gz
+}
+
+webp_src_url() {
+    SRC_URL="https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-$VER.tar.gz"
+    # https://storage.googleapis.com/downloads.webmproject.org/releases/webp/index.html
+}
+
+xml2_src_url() {
+    SRC_URL="https://github.com/GNOME/libxml2/archive/v$VER.tar.gz"
+}
+
+xz_src_url() {
+    SRC_URL="https://sourceforge.net/projects/lzmautils/files/xz-$VER.tar.bz2/download"
+    COMPRESS=bz2
+}
+
+zlib_src_url() {
+    SRC_URL="https://zlib.net/zlib-$VER.tar.gz"     # slow server
+    SRC_URL="https://github.com/madler/zlib/archive/v$VER.tar.gz"
+    # http://zlib.net/
+}
+
+# Source dirs (if not $NAME-$VER)
+
+gd_src_dir() {
+    SRC_DIR="libgd-$VER"
+}
+
+gif_src_dir() {
+    SRC_DIR="giflib-$VER"
+}
+
+iconv_src_dir() {
+    SRC_DIR="libiconv-$VER"
+}
+
+imagemagick_src_dir() {
+    SRC_DIR="ImageMagick-$VER"
+}
+
+imagequant_src_dir() {
+    SRC_DIR="libimagequant-$VER"
+}
+
+png_src_dir() {
+    SRC_DIR="libpng-$VER"
+}
+
+sdl_src_dir() {
+    SRC_DIR="SDL2-$VER"
+}
+
+uuid_src_dir() {
+    SRC_DIR="libuuid-$VER"
+}
+
+webp_src_dir() {
+    SRC_DIR="libwebp-$VER"
+}
+
+xml2_src_dir() {
+    SRC_DIR="libxml2-$VER"
+}

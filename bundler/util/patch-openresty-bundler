@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+cd $(dirname "$(test -L "$0" && readlink -f "$0" || echo "$0")")
+cd ../..
+
+# Move to build dir
+[ ! -d build ] && echo "[Error] Build dir does not exist: $(pwd)/build" && exit 1
+cd build
+BUILD=$(pwd)
+
+# Move to util dir
+OPENRESTY_UTIL="$BUILD/openresty/util"
+cd $OPENRESTY_UTIL || exit 1
+
+# Patch configure and mirror-tarballs
+for f in configure mirror-tarballs; do
+    [ ! -f ./$f.orig ] && cp ./$f ./$f.orig
+    cp -f $BUILD/$f/$f.3 ./$f || exit 1
+done
+
+exit 0

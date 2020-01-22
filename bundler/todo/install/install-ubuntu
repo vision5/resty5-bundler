@@ -1,0 +1,147 @@
+#! /bin/bash
+
+cd `dirname $0`; cd ..
+SRC_DIR=`pwd`
+
+
+### Settings ###
+
+ZLIB_VERSION=1.2.11
+PCRE_VERSION=8.41
+OPENSSL_VERSION=1.0.2l
+#OPENSSL_VERSION=1.1.0f doesn't work
+OPENRESTY_VERSION=1.11.2.5
+
+SOURCE_DIR=/usr/local/src/openresty
+PREFIX=/opt/openresty
+
+
+### URLs ###
+
+ZLIB_URL=https://zlib.net/zlib-$ZLIB_VERSION.tar.gz
+PCRE_URL=https://ftp.pcre.org/pub/pcre/pcre-$PCRE_VERSION.tar.gz
+OPENSSL_URL=https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
+OPENRESTY_URL=https://openresty.org/download/openresty-$OPENRESTY_VERSION.tar.gz
+
+
+### Install functions ###
+
+install_file() {
+
+    echo "Installing $1 ..."
+
+    name=$1
+    shift
+
+
+    ### Check if are going to make or not ###
+
+    if [[ $1 = 'X' ]]; then
+        no_make=y
+        shift
+    else
+        no_make=n
+    fi
+
+
+    ### Variables ###
+
+    version=`eval echo '$'${name^^}_VERSION`
+    url=`eval echo '$'${name^^}_URL`
+    dir=$name-$version
+    file=$dir.tar.gz
+
+
+    ### Create source dir ###
+
+    sudo mkdir -p $SOURCE_DIR
+    cd $SOURCE_DIR
+
+
+    ### Download file ###
+
+    if [[ ! -f $file ]]; then
+
+        sudo wget "$url"
+
+        [[ $? != 0 ]] && echo "Failure to download $name source from $url" && rm -f $file && return 1
+    fi
+
+
+    ### Extract ###
+
+    sudo rm -fR $dir
+    sudo tar -xzf $file
+    cd $dir
+
+
+    ### Compile ###
+
+    #return
+
+    if [[ -f configure ]]; then
+        sudo ./configure $*
+    else
+        sudo ./config $*
+    fi
+
+    [[ $no_make = y ]] && return
+
+    sudo make
+    sudo make install
+}
+
+
+install_binary() {
+
+    install_file zlib X || exit 1
+    install_file pcre X || exit 1
+    install_file openssl X || exit 1
+    install_file openresty \
+        --prefix=$PREFIX \
+        --with-openssl=$SOURCE_DIR/openssl-$OPENSSL_VERSION \
+        --with-pcre=$SOURCE_DIR/pcre-$PCRE_VERSION \
+        --with-zlib=$SOURCE_DIR/zlib-$ZLIB_VERSION \
+        || exit 1
+}
+
+
+install_conf() {
+
+    echo "Copying Nginx config"
+
+    sudo rm -fr $PREFIX/nginx/conf
+    sudo cp -r $SRC_DIR/conf/nginx $PREFIX/nginx/conf
+}
+
+
+install_startup() {
+
+    echo "Installing startup script"
+
+    sudo chmod 777 /etc/init.d
+    sudo sed "s|%%PREFIX%%|$PREFIX|" $SRC_DIR/install/init.d/openresty > /etc/init.d/openresty
+    sudo chmod +x /etc/init.d/openresty
+    sudo chmod 775 /etc/init.d
+
+    for i in 0 1 6; do
+
+        cd /etc/rc${i}.d
+        sudo ln -sfT ../init.d/openresty K02openresty
+
+    done
+
+    for i in 2 3 4 5; do
+
+        cd /etc/rc${i}.d
+        sudo ln -sfT ../init.d/openresty S02openresty
+
+    done
+}
+
+
+### Run the installation ###
+
+install_binary
+install_conf
+install_startup

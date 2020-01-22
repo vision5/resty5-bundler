@@ -1,0 +1,176 @@
+#!/usr/bin/env bash
+
+## NOTE: Use -t after version for testing
+
+cd $(dirname "$(test -L "$0" && readlink -f "$0" || echo "$0")")
+
+NAME=configure
+. gen/header
+
+# Settings
+
+SECTION_SUFFIX=pl
+SECTIONS='
+    todos
+    perl_uses
+    nginx_modules
+    lua_resty_libs
+    c_libs_list
+    c_libs_config
+    configure_arg_regexes 
+    configure_arg_tests
+    env_functions
+    build_c_libs_functions
+    build_c_libs
+    usage_functions
+'
+
+# Functions
+
+add_nginx_modules() {
+    name=$1
+    
+    # Get mods
+    cmd="mods=\"$(echo \$${name}_mods)\""
+    eval "$cmd"
+    
+    # Output mods
+    echo "my @${name}_modules = (" >> "$out"
+    for mod in $mods; do
+        echo "    '$mod'," >> "$out"
+    done
+    echo ');' >> "$out"
+    echo >> "$out"
+}
+
+check_final() {
+    
+    # Set orig configure options
+    check_set_configure_options $NAME_ORIG
+    orig_options="$CONFIGURE_OPTIONS"
+    
+    # Set final configure options
+    check_set_configure_options $NAME_FINAL
+    final_options="$CONFIGURE_OPTIONS"
+    
+    # Loop through both lists
+    errors=
+    for o in $orig_options; do
+        #echo $o
+        found=
+        for fo in $final_options; do
+            if [ $fo = $o ]; then
+                found=1
+                break
+            fi
+        done
+        if [[ $found != 1 ]]; then
+            echo "[Error] The OpenResty option not included in Resty5: $o"
+            errors=1
+        fi 
+    done
+    if [[ $errors = 1 ]]; then
+        echo "[Error] To add the missing OpenResty options to Resty5, modify file: $BASE/sections/usage_functions.pl"
+        echo "[OpenResty] ./configure --help"
+        $ORIG --help
+        exit 1
+    fi
+}
+
+check_set_configure_options() {
+    f="$BUILD/$1"
+    cmd="$f --help | sed -rn 's|.*--([^ =]+).*|\1|p' | uniq | sort"
+    $cmd &> /dev/null
+    if [ $? = 0 ]; then
+        CONFIGURE_OPTIONS="$(eval $cmd)"
+    else
+        echo "[Error] Cannot run configure: $f"
+        $cmd
+    fi
+}
+
+gen_section_c_libs_list() {
+
+    # Files
+    out="$(section_file c_libs_list)"
+    config="$C_LIBS_CONFIG"
+
+    # Get list of libs
+    libs="$(cat $config | sed -re 's|^(.*)#.*|\1|' -e 's|^[ ]*([^ ]+).*|\1|' | sed '/^$/d' | uniq | sort)"
+    
+    # Generate file
+    echo "my @c_libs = (" > "$out"
+    for lib in $libs; do
+        echo "    '$lib'," >> "$out"
+    done
+    echo ');' >> "$out"
+    echo >> "$out"
+}
+
+gen_section_lua_resty_libs() {
+
+    # Files
+    out="$(section_file lua_resty_libs)"
+    config="$LUA_RESTY_LIBS_CONFIG"
+
+    # Get list of libs
+    openresty_libs="$("$ORIG" --help | sed -rn 's|.*lua_resty_([^ ]+).*|\1|p')"
+    resty5_libs="$(cat $config | sed -r 's|.*\/lua-resty-([^ ]+).*|\1|' | tr '-' '_')"
+    libs="$(echo "$openresty_libs" "$resty5_libs" | uniq | sort)"
+    
+    # Generate file
+    echo "my @lua_resty_libs = (" > "$out"
+    for lib in $libs; do
+        echo "    '$lib'," >> "$out"
+    done
+    echo ');' >> "$out"
+    echo >> "$out"
+}
+
+gen_section_nginx_modules() {
+    
+    # Out
+    out="$(section_file nginx_modules)"
+    echo -n > "$out"
+    
+    # Get lists of mods
+    with_http_mods="$("$ORIG" --help | sed -rn 's|.*with-http_([^ ]+)_module.*|\1|p' | uniq | sort)"
+    without_http_mods="$("$ORIG" --help | sed -rn 's|.*without-http_([^ ]+)_module.*|\1|p' | uniq | sort)"
+    
+    with_mail_mods="$("$ORIG" --help | sed -rn 's|.*with-mail_([^ ]+)_module.*|\1|p' | uniq | sort)"
+    without_mail_mods="$("$ORIG" --help | sed -rn 's|.*without-mail_([^ ]+)_module.*|\1|p' | uniq | sort)"
+    
+    with_stream_mods="$("$ORIG" --help | sed -rn 's|.*with-stream_([^ ]+)_module.*|\1|p' | uniq | sort)"
+    without_stream_mods="$("$ORIG" --help | sed -rn 's|.*without-stream_([^ ]+)_module.*|\1|p' | uniq | sort)"
+    
+    with_mods="$("$ORIG" --help | sed -rn 's|.*with-([^ ]+)_module.*|\1|p' | grep -Pv '^(http|stream|mail)_' | uniq | sort)"
+    without_mods="$("$ORIG" --help | sed -rn 's|.*without-([^ ]+)_module.*|\1|p' | grep -Pv '^(http|stream|mail)_' | uniq | sort)"
+    
+    list='
+        with_http 
+        without_http 
+        with_mail
+        without_mail
+        with_stream 
+        without_stream 
+        with 
+        without
+    '
+    
+    for group in $list; do
+        add_nginx_modules $group
+    done
+}
+
+gen_sections() {
+    gen_section_nginx_modules
+    gen_section_lua_resty_libs
+    gen_section_c_libs_list
+}
+
+gen_test() {
+    $FINAL --help
+}
+
+cd "$UTIL"
+. gen/footer

@@ -1,0 +1,6 @@
+#! /bin/bash
+
+pcre_options() {
+    CONFIGURE_OPTS='--enable-jit --enable-pcregrep-libz --enable-pcregrep-bz2'
+    MAKE_OPTS=''
+}

@@ -1,0 +1,26 @@
+# name          version
+
+bzip2           1.0.6
+#expat           2.2.5
+#fontconfig      2.13.0
+#freetype        2.9
+#gd              2.2.5
+#gdal            2.2.4
+#gif             5.1.4
+#glib            2.56.1
+#harfbuzz        1.7.6
+#iconv           1.15
+#imagemagick     7.0.7-28
+#imagequant      2.11.10
+#jpeg            9c
+#lzma            4.32.7
+openssl         1.1.0j
+pcre            8.42
+#png             1.6.34
+#sdl             2.0.8
+#tiff            4.0.9
+#uuid            1.0.3
+#webp            0.6.1    
+#xml2            2.9.8
+#xz              5.2.3    
+zlib            1.2.11

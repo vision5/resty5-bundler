@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+cd $(dirname "$(test -L "$0" && readlink -f "$0" || echo "$0")")
+cd ../..
+
+# Clean build dir
+rm -fr build || exit 1

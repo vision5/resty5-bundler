@@ -1,0 +1,185 @@
+#! /bin/bash
+
+test $# -lt 1 && echo "Usage : $0 (version) [-t]" && exit 1
+VERSION=$1
+TEST=$2
+
+echo "Generating $NAME file ..."
+
+# Generic variables
+
+UTIL=$(pwd)
+cd ../..
+ROOT=$(pwd)
+
+BUILD="$ROOT/build/$NAME"
+BUNDLER="$ROOT/bundler"
+BASE="$BUNDLER/gen/$NAME"
+ETC="$ROOT/etc"
+BAK="$BASE/bak"
+
+SECTIONS_BUILD="$BUILD/sections"
+SECTIONS_STATIC="$BASE/sections"
+SECTIONS_GEN="$BASE/sections_gen"
+
+NAME_ORIG=$NAME.1
+NAME_PATCHED=$NAME.2
+NAME_FINAL=$NAME.3
+
+ORIG="$BUILD/$NAME_ORIG"
+PATCHED="$BUILD/$NAME_PATCHED"
+FINAL="$BUILD/$NAME_FINAL"
+
+BASE_ORIG="$BASE/$NAME_ORIG"
+BASE_PATCHED="$BASE/$NAME_PATCHED"
+BASE_FINAL="$BASE/$NAME_FINAL"
+
+# Resty5 variables
+
+SRC="$ROOT/build/openresty/util/$NAME"
+
+C_LIBS_CONFIG="$ETC/c-libs-version-$VERSION"
+C_LIBS_SOURCES="$ETC/c-libs-sources"
+C_LIBS_TEMPLATE="$SECTIONS_GEN/c-lib.sh"
+
+LUA_RESTY_LIBS_CONFIG="$ETC/lua-resty-libs"
+LUA_RESTY_LIBS_TEMPLATE="$SECTIONS_GEN/lua-resty-lib.sh"
+LUA_RESTY_LIBS_MAKEFILE="$SECTIONS_GEN/lua-resty-makefile"
+
+# Generic functions
+
+add_section() {
+    name=$1
+    final="$FINAL"
+    
+    # Get file
+    file="$(section_file $name)"
+    [ ! -f $file ] && echo "[Error] Section file does not exist: $file" && exit 1
+    
+    # Check tag exists
+    tag="<${name^^}>"
+    cat $final | grep "$tag" &> /dev/null
+    [ $? != 0 ] && echo "[Error] Tag $tag doesn't exist in file: $final" && exit 1
+
+    # Replace section in file
+    sed -i "/$tag/ {
+        r $file
+        d
+    }" $final
+    
+    # Check the replace worked
+    cat $final | grep "$tag" &> /dev/null
+    [ $? = 0 ] && echo "[Error] Tag $tag wasn't replaced in file: $final" && exit 1
+}
+
+add_sections() {
+    cp -f "$PATCHED" "$FINAL"
+    chmod +x "$FINAL"
+
+    for s in $SECTIONS; do
+        add_section $s
+    done
+}
+
+check_final() {
+    true
+}
+
+clean_build_dir() {
+    mkdir -p "$BUILD"
+    cd "$BUILD"
+    rm -fr *
+}
+
+copy_src() {
+    cp "$SRC" $ORIG
+    chmod +x $ORIG
+}
+
+copy_static_sections() {
+    mkdir -p "$SECTIONS_BUILD" || exit 1
+    [ ! -d "$SECTIONS_STATIC" ] && return
+    cp -frT "$SECTIONS_STATIC" "$SECTIONS_BUILD"
+}
+
+gen_all() {
+    [[ ! -f "$SRC" ]] && echo "[Error] File does not exist: $SRC" && exit 1
+    
+    # Setup
+    clean_build_dir
+    replace_src
+
+    # Core
+    copy_src
+    gen_insertion_points_patch
+    patch_insertion_points
+    replace_current_insertion_points_files
+
+    # Sections
+    copy_static_sections
+    gen_sections
+    add_sections
+    
+    # Check generated script
+    check_final
+}
+
+gen_insertion_points_patch() {
+    cd "$BASE"
+    diff -Naur $NAME_ORIG $NAME_PATCHED > $PATCHED.patch
+}
+
+gen_sections() {
+    true
+}
+
+gen_test() {
+    true
+}
+
+patch_insertion_points() {
+    [[ ! -f $ORIG ]] && echo "[Error] File $ORIG does not exist" && exit 1
+
+    cd "$BUILD"
+    patch -p0 -o $NAME_PATCHED $NAME_ORIG $PATCHED.patch
+    [[ $? != 0 ]] && echo "[Error] The file $ORIG could not be patched. 
+        See $BASE/README.md for more info on how to fix this." && exit 1
+}
+
+replace_current_insertion_points_files() {
+    
+    # Check if the files are different
+    tmp=/tmp/$NAME.md5
+    cd "$BUILD"
+    md5sum $NAME_ORIG $NAME_PATCHED > $tmp
+    cd "$BASE"
+    md5sum -c $tmp &> /dev/null
+    ret=$?
+    cd "$BUILD"
+    rm $tmp
+    [ $ret = 0 ] && return
+    
+    # Backup current files
+    echo "Backing up current $NAME section patch files"
+    date=$(date +"%Y-%m-%d_%H-%M-%S")
+    #date=$(date +"%Y-%m-%d_%T")
+    dir="$BAK/$date"
+    mkdir -p $dir || exit 1
+    cp $BASE_ORIG $BASE_PATCHED "$dir/" || exit 1
+    
+    # Replace old files with new ones
+    echo "Replacing current $NAME section patch files with successfully patched ones"
+    cp -f $ORIG $PATCHED "$BASE/" || exit 1
+}
+
+replace_src() {
+    if [ -f "$SRC.orig" ]; then
+        cp -f "$SRC.orig" "$SRC"
+    else
+        cp "$SRC" "$SRC.orig"
+    fi
+}
+
+section_file() {
+    echo "$SECTIONS_BUILD/$1.$SECTION_SUFFIX"
+}

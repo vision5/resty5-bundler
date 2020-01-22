@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+cd $(dirname "$(test -L "$0" && readlink -f "$0" || echo "$0")")
+
+version=${1:-slimline}
+
+../bundler/util/build-bundle $version
