@@ -172,7 +172,7 @@ See their respective packages for details.
 
 The Resty5 bundler is licensed under the 2-clause BSD license.
 
-- Copyright (c) 2019-2020, Vision5 <contact@5.vision>
+Copyright (c) 2019-2020, Vision5 <contact@5.vision>
 
 This module is licensed under the terms of the BSD license.
 
