@@ -10,6 +10,7 @@ Table of Contents
 * [Description](#description)
 * [Compatability with OpenResty](#compatability-with-openresty)
 * [Differences to OpenResty](#differences-to-openresty)
+* [Differences in the ./configure script](#differences-in-the-configure-script)
 * [Version features](#version-features)
 * [Status](#status)
 * [Documentation](#documentation)
@@ -40,7 +41,19 @@ Differences to OpenResty
 1. Many more Lua modules are bundled in by default
 2. The bundler is very flexible, and can be easily configured to include different modules
 3. The bundler always includes the latest releases of all packages
-4. The configure script has options for all the included modules
+4. There are differences with in the configure script (including more options) - see below
+
+[Back to TOC](#table-of-contents)
+
+Differences in the ./configure script
+=====================================
+
+1. There are more options with Resty5 than OpenResty
+2. The options are organized in a different way, with headings, more spacing and and listed alphabetically (for clarity)
+3. Configuration options are added for all the external libraries that are bundled with Resty5
+
+Note that the Resty5 configure options is (and will remain) a superset of the OpenResty 
+options, so no changes need to be made when switching from OpenResty to Resty5.
 
 [Back to TOC](#table-of-contents)
 
@@ -59,9 +72,7 @@ as shared libraries that are loaded at run time.
 Status
 ======
 
-- The OpenResty code and the bundled libraries for the slimline version are production-ready. 
-- This bundler is usable for the simplest version of this code (slimline), though is not yet of high quality.
-- This bundler is not ready for use for any other version of Resty5.
+- The OpenResty code and the bundled libraries for the slimline version are production-ready.
 
 [Back to TOC](#table-of-contents)
 
@@ -83,7 +94,7 @@ Report Bugs
 
 You're very welcome to report issues on GitHub:
 
-https://github.com/vision5/resty5-bundler/issues
+https://github.com/vision5/resty5-slimline/issues
 
 [Back to TOC](#table-of-contents)
 
@@ -91,7 +102,6 @@ TODO
 ====
 
 - Update this README
-- Add autoreconf to the 
 
 [Back to TOC](#table-of-contents)
 
@@ -100,8 +110,8 @@ Copyright & License
 
 The bundle itself is licensed under the 2-clause BSD license.
 
-(Resty5) Copyright (c) 2019, Vision5 <contact@5.vision> 
-(OpenResty) Copyright (c) 2011-2019, Yichun "agentzh" Zhang (章亦春) <agentzh@gmail.com>, OpenResty Inc.
+(Resty5) Copyright (c) 2019-20, Vision5 <contact@5.vision> 
+(OpenResty) Copyright (c) 2011-2020, Yichun "agentzh" Zhang (章亦春) <agentzh@gmail.com>, OpenResty Inc.
 
 This module is licensed under the terms of the BSD license.
 
