@@ -11,6 +11,7 @@ BUNDLER="$(pwd)/bundler"
 COPY="$BUNDLER/copy"
 COPY_ALL="$COPY/all"
 COPY_VERSION="$COPY/version/$VERSION"
+DELETE="$BUNDLER/delete"
 PATCHES="$BUNDLER/patches"
 
 # Move to OpenResty dir
@@ -23,11 +24,24 @@ PACKAGE="$(find openresty-* -maxdepth 0 -type d 2>/dev/null)"
 [ -z "$PACKAGE" ] && echo "[Error] OpenResty package dir does not exist in dir: $(pwd)" && exit 1
 PACKAGE="$(pwd)/$PACKAGE"
 
-# Copy all files
+# Copy files
 for d in "$COPY_ALL" "$COPY_VERSION"; do
-    find "$d/" -mindepth 1 -maxdepth 1 | xargs cp -r -t "$PACKAGE"
+    #find "$d/" -mindepth 1 -maxdepth 1 | xargs cp -r -t "$PACKAGE"
+    for f in $(cd "$d"; find -mindepth 1 -type f | cut -c 3-); do
+        echo "Copying file: $f"
+        dir="$(dirname $f)"
+        [ $dir != '.' ] && mkdir -p "$PACKAGE/$dir"
+        cp -f "$d/$f" "$PACKAGE/$f"
+    done
 done
 
+# Delete files
+for f in $(cd "$DELETE"; find -mindepth 1 -type f | cut -c 3-); do
+    echo "Deleting file: $f"
+    rm -f "$PACKAGE/$f"
+done
+
+exit 0
 
 # Check for patches
 BUNDLE="$PACKAGE/bundle"

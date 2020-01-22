@@ -280,6 +280,13 @@ if [ "$answer" = "N" ]; then
     echo
 fi
 
+answer=`$root/util/ver-ge "$main_ver" 1.4.1`
+if [ "$answer" = "Y" ]; then
+    echo "$info_txt applying patches/nginx-$main_ver-gcc-maybe-uninitialized-warning.patch for nginx"
+    patch -p1 < $root/patches/nginx-$main_ver-gcc-maybe-uninitialized-warning.patch
+    echo
+fi
+
 answer=`$root/util/ver-ge "$main_ver" 1.5.3`
 if [ "$answer" = "N" ]; then
     echo "$info_txt applying the unix_socket_accept_over_read patch for nginx $ver"
@@ -507,9 +514,9 @@ mv openresty-xss-nginx-module-* xss-nginx-module-$ver || exit 1
 #################################
 
 ver=0.3.1rc1
-$root/util/get-tarball "https://github.com/vision5/ngx_devel_kit/tarball/v$ver" -O ngx_devel_kit-$ver.tar.gz
+$root/util/get-tarball "https://github.com/simplresty/ngx_devel_kit/tarball/v$ver" -O ngx_devel_kit-$ver.tar.gz
 tar -xzf ngx_devel_kit-$ver.tar.gz || exit 1
-mv vision5-ngx_devel_kit-* ngx_devel_kit-$ver || exit 1
+mv simplresty-ngx_devel_kit-* ngx_devel_kit-$ver || exit 1
 
 #################################
 

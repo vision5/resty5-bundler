@@ -1,16 +1,12 @@
 #!/usr/bin/env perl
 
-<TODOS>
-
-use 5.010;
+use 5.006;
 use strict;
 use warnings;
 
 use Config;
 use File::Spec;
 use File::Temp qw( tempfile tmpnam );
-
-<PERL_USES>
 
 sub shell ($@);
 sub env ($$);
@@ -94,11 +90,6 @@ my @modules = (
     [stream_lua => 'ngx_stream_lua'],
 );
 
-<NGINX_MODULES>
-<LUA_RESTY_LIBS>
-<C_LIBS_LIST>
-<C_LIBS_CONFIG>
-
 my $without_resty_mods_regex;
 {
     my $s = '^--without-('
@@ -129,9 +120,7 @@ my $with_resty_mods_regex;
     $with_resty_mods_regex = qr/$s/;
 }
 
-<CONFIGURE_ARG_REGEXES>
-
-my $prefix = '/usr/local/resty5';
+my $prefix = '/usr/local/openresty';
 my $ngx_sbin;
 my %resty_opts;
 my $dry_run;
@@ -357,13 +346,10 @@ for my $opt (@ARGV) {
         }
         $path = File::Spec->rel2abs($path);
         push @ngx_opts, "--with-$lib=$path";
-        $resty_opts{"no_bundled_$lib"} = 1;
 
     } elsif ($opt =~ /^--sbin-path=(.*)/) {
         $ngx_sbin = $1;
         push @ngx_opts, $opt;
-
-<CONFIGURE_ARG_TESTS>
 
     } elsif ($opt =~ /^--\w.*/) {
         push @ngx_opts, $opt;
@@ -458,8 +444,6 @@ sub env ($$) {
     $ENV{$name} = $val;
 }
 
-<ENV_FUNCTIONS>
-
 sub shell ($@) {
     my ($cmd, $dry_run) = @_;
 
@@ -479,7 +463,7 @@ sub trim ($) {
 
 sub auto_complete ($) {
     my $name = shift;
-    my @dirs = glob "$name-[0-9]* $name-master*" or
+    my @dirs = glob "$name-[0-9]*" or
         die "No source directory found for $name\n";
 
     if (@dirs > 1) {
@@ -494,8 +478,6 @@ sub cd ($) {
     print("cd $dir\n");
     chdir $dir or die "failed to cd $dir: $!\n";
 }
-
-<BUILD_C_LIBS_FUNCTIONS>
 
 sub build_resty_opts {
     my $opts = shift;
@@ -647,8 +629,6 @@ _END_
 
     # build 3rd-party C libraries if required
 
-<BUILD_C_LIBS>
-
     if ($opts->{no_pool}) {
         if (! can_run("patch")) {
             die "no \"patch\" utility found in your PATH environment.\n";
@@ -743,11 +723,12 @@ _END_
             $luajit_xcflags .= " -DLUAJIT_ENABLE_LUA52COMPAT";
         }
 
-        if ($no_luajit_gc64
+        if (!$no_luajit_gc64
+            && $Config{"archname"} =~ /\bx86_64\b/
             && (!$user_luajit_xcflags
-                || $user_luajit_xcflags !~ /-DLUAJIT_DISABLE_GC64/))
+                || $user_luajit_xcflags !~ /-DLUAJIT_ENABLE_GC64\b/))
         {
-            $luajit_xcflags .= " -DLUAJIT_DISABLE_GC64";
+            $luajit_xcflags .= " -DLUAJIT_ENABLE_GC64";
         }
 
         if (!$user_luajit_xcflags
@@ -1191,7 +1172,9 @@ _EOC_
                 "\$(MAKE) install$extra_opts";
         }
 
-        for my $key (@lua_resty_libs)
+        for my $key (qw(dns memcached redis mysql string upload websocket
+                        lock lrucache core upstream_healthcheck limit_traffic
+                        shell))
         {
             add_lua_lib($opts, "lua_resty", $key);
         }
@@ -1313,7 +1296,7 @@ sub add_lua_lib ($$$) {
     }
 }
 
-sub usage_openresty ($) {
+sub usage ($) {
     my $retval = shift;
     my $msg = <<'_EOC_';
   --help                             this message
@@ -1596,8 +1579,6 @@ _EOC_
     warn $msg;
     exit $retval;
 }
-
-<USAGE_FUNCTIONS>
 
 sub gen_makefile {
     if (-f 'Makefile') {
