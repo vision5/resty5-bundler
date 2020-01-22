@@ -161,6 +161,9 @@ TODO
 - Better way of handling the config of libs + versions?
 - Change the server name to Resty5 instead of openresty
 - Document about the bundler/util, including the gen functions
+- Add details on configuration options to included README files
+- Look for more lua-resty-xxx modules to include
+- Test all the lua-resty-xxx modules
 
 [Back to TOC](#table-of-contents)
 
