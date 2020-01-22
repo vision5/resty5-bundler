@@ -33,8 +33,9 @@ my %libs_dependencies_optional = (
                     'lqr', 'lzma', 'openexr', 'openjp2', 'pango', 'raqm', 'raw_r', 'wmf', 'x11'],
 );    
 
-my %libs_autoconf = (
+my %libs_autoreconf = (
     glib => 1,
+    pcre => 1,
     xml2 => 1,
 );
 

@@ -98,10 +98,8 @@
             $conf = 'configure';
         }
         
-        if ($libs_autoconf{$lib} && ! -f "$lib_src/$conf") {
-            chdir $lib_src;
-            shell 'autoreconf --install';
-            chdir '../..';
+        if ($libs_autoreconf{$lib} && ! -f "$lib_src/$conf") {
+            shell "cd $lib_src && autoreconf -f -i";
         }
         shell "$lib_src/$conf --help";
         exit;

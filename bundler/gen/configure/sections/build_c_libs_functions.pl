@@ -427,8 +427,8 @@ sub build_c_lib_opts {
     
     # Autoconf
     
-    if ($libs_autoconf{$lib}) {
-        shell "autoreconf --install", $dry_run;
+    if ($libs_autoreconf{$lib}) {
+        shell "autoreconf -f -i", $dry_run;
     }
     
     # Configure
