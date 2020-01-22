@@ -12,6 +12,7 @@ Table of Contents
 * [Differences to OpenResty](#differences-to-openresty)
 * [Usage](#usage)
 * [Status](#status)
+* [Notes for developers](#notes-for-developers)
 * [Report Bugs](#report-bugs)
 * [TODO](#todo)
 * [Copyright & License](#copyright--license)
@@ -54,6 +55,15 @@ Currently the only version that is working is 'slimline', but we will be adding 
 to 'beefy' soon.
 
 The bundler works in the 'build' folder, with the final packages being moved to the 'src' folder.
+
+[Back to TOC](#table-of-contents)
+
+Status
+======
+
+- This bundler is usable for the simplest version of this code (slimline)
+- This bundler is not yet ready for use for any other version of Resty5
+- The OpenResty code and the bundled libraries for the slimline version are production-ready
 
 [Back to TOC](#table-of-contents)
 
@@ -128,15 +138,6 @@ After patching OpenResty:
 - Config files are stored in the etc dir
 - Lua module configs are for all versions, and references are to Github repos
 - C lib configs are for each version, and with sources downloaded from separate sites
-
-[Back to TOC](#table-of-contents)
-
-Status
-======
-
-- This bundler is usable for the simplest version of this code (slimline)
-- This bundler is not yet ready for use for any other version of Resty5
-- The OpenResty code and the bundled libraries for the slimline version are production-ready
 
 [Back to TOC](#table-of-contents)
 
